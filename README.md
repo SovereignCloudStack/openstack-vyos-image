@@ -1,3 +1,7 @@
-# openstack-vyos-image
+# VyOS on OpenStack
 
-https://vyos.readthedocs.io/en/latest/contributing/build-vyos.html
+## References
+
+* https://github.com/vyos/vyos-build
+* https://vyos.readthedocs.io/en/latest/contributing/build-vyos.html
+* https://www.vyos.io
