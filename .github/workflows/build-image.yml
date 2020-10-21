@@ -1,0 +1,36 @@
+---
+name: Build image
+
+on:
+  push:
+    paths:
+      - .github/workflows/build-image.yml
+      - packer-template.json
+      - packer-vars.json
+#    branches:
+#      - master
+
+jobs:
+
+  default:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: docker/setup-qemu-action@v1
+      - uses: docker/setup-buildx-action@v1
+      - run: |
+          git clone -b current --single-branch https://github.com/vyos/vyos-build
+          docker run --rm -t --privileged -v $(pwd)/vyos-build:/vyos -w /vyos vyos/vyos-build:current bash -c './configure --architecture amd64 && sudo make iso'
+          iso_md5_sum=($(md5sum vyos-build/build/live-image-amd64.hybrid.iso))
+          echo "ISO_MD5_SUM=$iso_md5_sum" >> $GITHUB_ENV
+      - run: |
+          curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo apt-key add -
+          sudo apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com $(lsb_release -cs) main"
+          sudo apt-get update
+          sudo apt-get install packer
+          packer build packer-template.json
+        env:
+          ISO_IMAGE: vyos-build/build/live-image-amd64.hybrid.iso
+          PACKER_BUILD_DIR: .
